@@ -2,6 +2,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 const User = require('./../../models/users');
+const Tweet = require('./../../models/tweets');
 const crypto = require('./../../functions/crypto');
 const config = require('./../../../config');
 
@@ -65,17 +66,24 @@ const loginUser = (req, res) => {
         password: req.body.password
     };
     User.findOne({username: user.username}, ["username", "name", "password"])
-    .then(response=>{
-        const password = response.password;
-        if(bcrypt.compareSync(user.password, password)){            
-            const token = jwt.sign({id: response._id}, config.tokenKey);
-            res.status(200).json({token: token, username: response.username, name: response.name, id: response._id});            
-        }else
-            res.sendStatus(400)    
-    })
-    .catch(err=>{
-        res.sendStatus(400);
-    });
-};
+        .then(response=>{
+            const password = response.password;
+            if(bcrypt.compareSync(user.password, password)){            
+                const token = jwt.sign({id: response._id}, config.tokenKey);
+                res.status(200).json({token: token, username: response.username, name: response.name, id: response._id});            
+            }else
+                res.sendStatus(400)    
+        })
+        .catch(err=>{
+            res.sendStatus(400);
+        });
+    };
+const getUserTweets = (req, res) => {
+    Tweet.find({ user: req.params.id })
+        .populate('user', ['username', 'name'])
+        .populate('comments.user', ['username', 'name'])
+        .then((r) => res.send(r))
+        .catch((_) => res.sendStatus(404));
+}
 
-module.exports = {getUser, newUser, updateUser, deleteUser, loginUser, getUsers};
+module.exports = {getUser, newUser, updateUser, deleteUser, loginUser, getUsers, getUserTweets};

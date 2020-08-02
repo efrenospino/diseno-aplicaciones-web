@@ -16,4 +16,7 @@ router.route('/:id')
     .get(controller.getUser)
     .put(logger, controller.updateUser);
 
+router.route('/:id/tweets')
+    .get(authentication, controller.getUserTweets);
+
 module.exports = router;
